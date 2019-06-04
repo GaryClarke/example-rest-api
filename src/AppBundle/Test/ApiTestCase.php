@@ -12,20 +12,11 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 
 class ApiTestCase extends WebTestCase
 {
-
     protected $container;
 
     protected $client;
 
-//    public static function setUpBeforeClass()
-//    {
-//        self::$staticClient = new Client([
-//            'base_uri' => 'http://localhost:8000',
-//            'defaults' => [
-//                'http_errors' => false
-//            ]
-//        ]);
-//    }
+    private $responseAsserter;
 
     /**
      * @inheritdoc
@@ -75,6 +66,15 @@ class ApiTestCase extends WebTestCase
     protected function getEntityManager()
     {
         return $this->getService('doctrine.orm.entity_manager');
+    }
+
+
+    protected function asserter()
+    {
+        if ($this->responseAsserter === null) {
+            $this->responseAsserter = new ResponseAsserter();
+        }
+        return $this->responseAsserter;
     }
 
 
