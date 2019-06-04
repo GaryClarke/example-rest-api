@@ -1,6 +1,6 @@
 <?php
 
-namespace AppBundle\Test;
+namespace Tests;
 
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Component\HttpKernel\KernelInterface;

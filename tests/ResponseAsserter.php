@@ -1,12 +1,11 @@
 <?php
 
-namespace AppBundle\Test;
+namespace Tests;
 
-use GuzzleHttp\Message\ResponseInterface;
-use Symfony\Component\PropertyAccess\Exception\RuntimeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\Exception\AccessException;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\PropertyAccess\Exception\AccessException;
+use Symfony\Component\PropertyAccess\Exception\RuntimeException;
 
 /**
  * Helper class to assert different conditions on Guzzle responses

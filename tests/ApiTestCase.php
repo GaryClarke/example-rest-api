@@ -1,14 +1,14 @@
 <?php
 
-namespace AppBundle\Test;
+namespace Tests;
 
-use AppBundle\Entity\Programmer;
 use AppBundle\Entity\User;
 use Doctrine\ORM\EntityManager;
+use AppBundle\Entity\Programmer;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Bundle\FrameworkBundle\Client;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
 class ApiTestCase extends WebTestCase
 {
@@ -17,6 +17,12 @@ class ApiTestCase extends WebTestCase
     protected $client;
 
     private $responseAsserter;
+
+
+    public static function setUpBeforeClass()
+    {
+        $baseUrl = getenv('TEST_BASE_URL');
+    }
 
     /**
      * @inheritdoc

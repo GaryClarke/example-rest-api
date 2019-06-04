@@ -32,7 +32,7 @@ class ProgrammerController extends BaseController
         $data = $this->serializeProgrammer($programmer);
 
         $response = new JsonResponse($data, 201);
-        
+
         $programmerUrl = $this->generateUrl(
             'api_programmers_show',
             ['nickname' => $programmer->getNickname()]
@@ -80,6 +80,61 @@ class ProgrammerController extends BaseController
         return new JsonResponse($data, 200);
 
     }
+
+
+    /**
+     * @Route("/api/programmers/{nickname}", name="api_programmers_update", methods={"PUT","PATCH"})
+     */
+    public function updateAction($nickname, Request $request)
+    {
+        $programmer = $this->getDoctrine()->getRepository('AppBundle:Programmer')->findOneByNickname($nickname);
+
+        if (!$programmer) {
+            throw $this->createNotFoundException(sprintf(
+                'No programmer found with nickname "%s"',
+                $nickname
+            ));
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        if (array_key_exists('avatarNumber', $data)) {
+            $programmer->setAvatarNumber($data['avatarNumber']);
+        }
+
+        if (array_key_exists('tagLine', $data)) {
+            $programmer->setTagLine($data['tagLine']);
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($programmer);
+        $em->flush();
+
+        $data = $this->serializeProgrammer($programmer);
+
+        $response = new JsonResponse($data, 200);
+
+        return $response;
+    }
+
+
+    /**
+     * @Route("/api/programmers/{nickname}", methods={"DELETE"})
+     */
+    public function deleteAction($nickname)
+    {
+        $programmer = $this->getDoctrine()->getRepository('AppBundle:Programmer')->findOneByNickname($nickname);
+
+        if ($programmer) {
+
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($programmer);
+            $em->flush();
+        }
+
+        return new JsonResponse(null, 204);
+    }
+
 
     private function serializeProgrammer(Programmer $programmer)
     {
