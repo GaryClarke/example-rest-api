@@ -4,11 +4,8 @@ namespace AppBundle\Controller\Api;
 
 use AppBundle\Entity\Programmer;
 use AppBundle\Controller\BaseController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 class ProgrammerController extends BaseController
 {
@@ -29,16 +26,12 @@ class ProgrammerController extends BaseController
         $em->persist($programmer);
         $em->flush();
 
-        $data = $this->serializeProgrammer($programmer);
-
-        $response = new JsonResponse($data, 201);
-
         $programmerUrl = $this->generateUrl(
             'api_programmers_show',
             ['nickname' => $programmer->getNickname()]
         );
 
-        $response->headers->set('Location', $programmerUrl);
+        $response = $this->createApiResponse($programmer, 201, true, ['Location' => $programmerUrl]);
 
         return $response;
     }
@@ -58,9 +51,7 @@ class ProgrammerController extends BaseController
             ));
         }
 
-        $data = $this->serializeProgrammer($programmer);
-
-        return new JsonResponse($data, 200);
+        return $this->createApiResponse($programmer);
     }
 
 
@@ -71,14 +62,7 @@ class ProgrammerController extends BaseController
     {
         $programmers = $this->getDoctrine()->getRepository('AppBundle:Programmer')->findAll();
 
-        $data = array('programmers' => array());
-
-        foreach ($programmers as $programmer) {
-            $data['programmers'][] = $this->serializeProgrammer($programmer);
-        }
-
-        return new JsonResponse($data, 200);
-
+        return $this->createApiResponse(['programmers' => $programmers]);
     }
 
 
@@ -110,11 +94,7 @@ class ProgrammerController extends BaseController
         $em->persist($programmer);
         $em->flush();
 
-        $data = $this->serializeProgrammer($programmer);
-
-        $response = new JsonResponse($data, 200);
-
-        return $response;
+        return $this->createApiResponse($programmer);
     }
 
 
@@ -132,17 +112,6 @@ class ProgrammerController extends BaseController
             $em->flush();
         }
 
-        return new JsonResponse(null, 204);
-    }
-
-
-    private function serializeProgrammer(Programmer $programmer)
-    {
-        return array(
-            'nickname'     => $programmer->getNickname(),
-            'avatarNumber' => $programmer->getAvatarNumber(),
-            'powerLevel'   => $programmer->getPowerLevel(),
-            'tagLine'      => $programmer->getTagLine(),
-        );
+        return $this->createApiResponse(null, 204);
     }
 }

@@ -30,6 +30,7 @@ framework:
     assets: ~
     php_errors:
         log: true
+    serializer: { enable_annotations: true }
 
 # Twig Configuration
 twig:

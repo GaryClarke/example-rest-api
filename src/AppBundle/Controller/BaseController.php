@@ -8,12 +8,28 @@ use AppBundle\Repository\ProjectRepository;
 use AppBundle\Repository\BattleRepository;
 use AppBundle\Repository\ApiTokenRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\HttpFoundation\Request;
 use AppBundle\Entity\User;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 abstract class BaseController extends Controller
 {
+    /** @var Serializer */
+    private $serializer;
+
+    public function __construct()
+    {
+        $normalizer = new ObjectNormalizer();
+        $normalizer->setIgnoredAttributes(['id']);
+        $encoder = new JsonEncoder();
+
+        $this->serializer = new Serializer([$normalizer], [$encoder]);
+    }
+
     /**
      * Is the current user logged in?
      *
@@ -108,5 +124,32 @@ abstract class BaseController extends Controller
     {
         return $this->getDoctrine()
             ->getRepository('AppBundle:ApiToken');
+    }
+
+    /**
+     * @param $data
+     * @param string $format
+     * @return bool|float|int|string
+     */
+    protected function serialize($data, $format = 'json')
+    {
+//        return $this->container->get('serializer')->serialize($data, $format);
+
+        return $this->serializer->serialize($data, $format);
+    }
+
+
+    /**
+     * @param $data
+     * @param int $statusCode
+     * @param bool $alreadyJson
+     * @param array $headers
+     * @return JsonResponse
+     */
+    protected function createApiResponse($data, $statusCode = 200, $alreadyJson = true, $headers = [])
+    {
+        $json = $this->serialize($data);
+
+        return new JsonResponse($json, $statusCode, $headers, $alreadyJson);
     }
 }
