@@ -136,4 +136,31 @@ class ProgrammerControllerTest extends ApiTestCase
         $this->asserter()->assertResponsePropertyEquals($response, 'avatarNumber', 5);
         $this->asserter()->assertResponsePropertyEquals($response, 'tagLine', 'bar');
     }
+
+
+    public function testValidationErrors()
+    {
+        $data = array(
+            'avatarNumber' => 5,
+            'tagLine'      => 'a test dev!'
+        );
+
+        // 1) POST - create a programmer resource
+        $this->jsonRequest('POST', '/api/programmers', $data);
+
+        $response = $this->getClient()->getResponse();
+
+        $this->assertEquals(400, $response->getStatusCode());
+
+        $this->asserter()->assertResponsePropertiesExist($response, [
+            'type',
+            'title',
+            'errors'
+        ]);
+
+        $this->asserter()->assertResponsePropertyExists($response, 'errors.nickname');
+        $this->asserter()->assertResponsePropertyEquals($response, 'errors.nickname[0]', 'Please enter a clever nickname');
+        $this->asserter()->assertResponsePropertyDoesNotExist($response, 'errors.avatarNumber');
+    }
+
 }

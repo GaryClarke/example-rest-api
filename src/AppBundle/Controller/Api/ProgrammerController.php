@@ -19,8 +19,10 @@ class ProgrammerController extends BaseController
 
         $programmer = new Programmer($data['nickname'], $data['avatarNumber']);
         $programmer->setTagLine($data['tagLine']);
-
         $programmer->setUser($this->findUserByUsername('weaverryan'));
+
+        $validator = $this->get('validator');
+        $errors = $validator->validate($programmer);
 
         $em = $this->getDoctrine()->getManager();
         $em->persist($programmer);
