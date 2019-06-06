@@ -6,6 +6,9 @@ use AppBundle\Entity\Programmer;
 use AppBundle\Controller\BaseController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 class ProgrammerController extends BaseController
 {
@@ -13,17 +16,30 @@ class ProgrammerController extends BaseController
     /**
      * @Route("/api/programmers", methods={"POST"})
      */
-    public function newAction(Request $request)
+    public function newAction(Request $request, SerializerInterface $serializer)
     {
-        $data = json_decode($request->getContent(), true);
+        $data = $request->getContent();
 
-        // Deserialize data into a programmer object
-        $programmer = new Programmer($data['nickname'], $data['avatarNumber']);
-        $programmer->setTagLine($data['tagLine']);
+        $programmer = $serializer->deserialize($data, Programmer::class, 'json');
+
         $programmer->setUser($this->findUserByUsername('weaverryan'));
 
         $validator = $this->get('validator');
-        $errors = $validator->validate($programmer);
+
+        $validation = $validator->validate($programmer);
+
+        if ($validation->count() > 0) {
+
+            $errors = $this->getErrors($validation);
+
+            $data = [
+                'type'   => 'validation_error',
+                'title'  => 'There was a validation error',
+                'errors' => $errors
+            ];
+
+            return new JsonResponse($data, 400);
+        }
 
         $em = $this->getDoctrine()->getManager();
         $em->persist($programmer);
@@ -38,6 +54,82 @@ class ProgrammerController extends BaseController
 
         return $response;
     }
+
+
+    /**
+     * @param $validationErrors ConstraintViolationList
+     * @return array
+     */
+    private function getErrors($validationErrors)
+    {
+        $errors = [];
+
+        foreach ($validationErrors as $validationError) {
+
+            $errors[$validationError->getPropertyPath()][] = $validationError->getMessage();
+        }
+
+        return $errors;
+    }
+
+
+//    /**
+//     * Return calculation based on claim type.
+//     *
+//     * @Route(
+//     *     "/{claimType}",
+//     *     name="calculate",
+//     *     methods={"GET","HEAD"},
+//     *     requirements={"claimType"="MAT|DTH|SUR|PUP"}
+//     * )
+//     *
+//     * @param Request $request
+//     * @param IntegroApiInterface $integroApi
+//     * @param SerializerInterface $serializer
+//     * @param string $claimType
+//     *
+//     *
+//     * @return JsonResponse
+//     */
+//    public function calculateAction(
+//        Request $request,
+//        IntegroApiInterface $integroApi,
+//        SerializerInterface $serializer,
+//        $claimType
+//    ) {
+//        // Fetch policy data from Integro
+//        $data = $integroApi->fetchPolicyData($request->get('policy_number'), $request->get('company_code'));
+//
+//        $policyData = $serializer->deserialize($data, PolicyData::class, 'json');
+//
+//        // Get the required calculator based upon claim type, profit status, value status and company code (source system)
+//        $calculator = CalculatorFactory::createCalculator($claimType, $policyData);
+//
+//        // Validate @todo - come back to this
+////        $errors = $calculator->validate();
+//
+////        if (count($errors) > 0) {
+////            /*
+////             * Uses a __toString method on the $errors variable which is a
+////             * ConstraintViolationList object. This gives us a nice string
+////             * for debugging.
+////             */
+////            $errorsString = (string) $errors;
+////
+////            return new JsonResponse($errorsString, 422);
+////        }
+//
+//        $em = $this->getDoctrine()->getManager();
+//
+//        // Perform the calcultion
+//        $calculation = $calculator->setEntityManager($em)->calculate();
+//
+//        // Have to use this in order to return values as snake_case because the serializer converts everything to camelcase
+//        $normalizer = new ObjectNormalizer(null, new CamelCaseToSnakeCaseNameConverter());
+//
+//        // Return the response as JSON
+//        return new JsonResponse($normalizer->normalize($calculation->getPolicyData()));
+//    }
 
 
     /**
