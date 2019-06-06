@@ -17,6 +17,7 @@ class ProgrammerController extends BaseController
     {
         $data = json_decode($request->getContent(), true);
 
+        // Deserialize data into a programmer object
         $programmer = new Programmer($data['nickname'], $data['avatarNumber']);
         $programmer->setTagLine($data['tagLine']);
         $programmer->setUser($this->findUserByUsername('weaverryan'));

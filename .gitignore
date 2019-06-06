@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/symfony,phpstorm
 # Edit at https://www.gitignore.io/?templates=symfony,phpstorm
 
@@ -141,5 +140,8 @@ fabric.properties
 ### Symfony Patch ###
 /web/css/
 /web/js/
+
+# GC
+instructions.txt
 
 # End of https://www.gitignore.io/api/symfony,phpstorm
