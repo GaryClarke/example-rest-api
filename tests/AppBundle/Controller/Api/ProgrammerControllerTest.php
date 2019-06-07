@@ -161,6 +161,7 @@ class ProgrammerControllerTest extends ApiTestCase
         $this->asserter()->assertResponsePropertyExists($response, 'errors.nickname');
         $this->asserter()->assertResponsePropertyEquals($response, 'errors.nickname[0]', 'Please enter a clever nickname');
         $this->asserter()->assertResponsePropertyDoesNotExist($response, 'errors.avatarNumber');
+        $this->assertEquals('application/problem+json', $response->headers->get('Content-Type'));
     }
 
 }

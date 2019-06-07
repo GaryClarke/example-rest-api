@@ -7,11 +7,13 @@ use AppBundle\Controller\BaseController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
 
 class ProgrammerController extends BaseController
 {
+    private static $excludedFromUpdate = ['id', 'nickname'];
 
     /**
      * @Route("/api/programmers", methods={"POST"})
@@ -30,15 +32,7 @@ class ProgrammerController extends BaseController
 
         if ($validation->count() > 0) {
 
-            $errors = $this->getErrors($validation);
-
-            $data = [
-                'type'   => 'validation_error',
-                'title'  => 'There was a validation error',
-                'errors' => $errors
-            ];
-
-            return new JsonResponse($data, 400);
+            return $this->createValidationErrorResponse($validation);
         }
 
         $em = $this->getDoctrine()->getManager();
@@ -177,12 +171,23 @@ class ProgrammerController extends BaseController
 
         $data = json_decode($request->getContent(), true);
 
-        if (array_key_exists('avatarNumber', $data)) {
-            $programmer->setAvatarNumber($data['avatarNumber']);
+        $accessor = PropertyAccess::createPropertyAccessor();
+
+        foreach ($data as $key => $value) {
+
+            if (!in_array($key, static::$excludedFromUpdate)) {
+
+                $accessor->setValue($programmer, $key, $value);
+            }
         }
 
-        if (array_key_exists('tagLine', $data)) {
-            $programmer->setTagLine($data['tagLine']);
+        $validator = $this->get('validator');
+
+        $validation = $validator->validate($programmer);
+
+        if ($validation->count() > 0) {
+
+            return $this->createValidationErrorResponse($validation);
         }
 
         $em = $this->getDoctrine()->getManager();
@@ -208,5 +213,19 @@ class ProgrammerController extends BaseController
         }
 
         return $this->createApiResponse(null, 204);
+    }
+
+
+    private function createValidationErrorResponse($validation)
+    {
+        $errors = $this->getErrors($validation);
+
+        $data = [
+            'type'   => 'validation_error',
+            'title'  => 'There was a validation error',
+            'errors' => $errors
+        ];
+
+        return new JsonResponse($data, 400, ['Content-Type' => 'application/problem+json']);
     }
 }
