@@ -2,6 +2,7 @@
 
 namespace AppBundle\Controller\Api;
 
+use AppBundle\Api\ApiProblem;
 use AppBundle\Entity\Programmer;
 use AppBundle\Controller\BaseController;
 use Symfony\Component\HttpFoundation\Request;
@@ -220,12 +221,10 @@ class ProgrammerController extends BaseController
     {
         $errors = $this->getErrors($validation);
 
-        $data = [
-            'type'   => 'validation_error',
-            'title'  => 'There was a validation error',
-            'errors' => $errors
-        ];
+        $apiProblem = new ApiProblem(400, ApiProblem::TYPE_VALIDATION_ERROR);
 
-        return new JsonResponse($data, 400, ['Content-Type' => 'application/problem+json']);
+        $apiProblem->set('errors', $errors);
+
+        return new JsonResponse($apiProblem->toArray(), $apiProblem->getStatusCode(), ['Content-Type' => 'application/problem+json']);
     }
 }
