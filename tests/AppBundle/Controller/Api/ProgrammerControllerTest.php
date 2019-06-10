@@ -124,7 +124,7 @@ class ProgrammerControllerTest extends ApiTestCase
         ]);
 
         $data = array(
-            'tagLine'      => 'bar'
+            'tagLine' => 'bar'
         );
 
         $this->jsonRequest('PATCH', '/api/programmers/CowboyCoder', $data);
@@ -145,7 +145,6 @@ class ProgrammerControllerTest extends ApiTestCase
             'tagLine'      => 'a test dev!'
         );
 
-        // 1) POST - create a programmer resource
         $this->jsonRequest('POST', '/api/programmers', $data);
 
         $response = $this->getClient()->getResponse();
@@ -162,5 +161,29 @@ class ProgrammerControllerTest extends ApiTestCase
         $this->asserter()->assertResponsePropertyEquals($response, 'errors.nickname[0]', 'Please enter a clever nickname');
         $this->asserter()->assertResponsePropertyDoesNotExist($response, 'errors.avatarNumber');
         $this->assertEquals('application/problem+json', $response->headers->get('Content-Type'));
+    }
+
+
+    public function testInvalidJson()
+    {
+        $invalidBody = <<<EOF
+{
+    "avatarNumber" : "2
+    "tagLine": "I'm from a test!"
+}
+EOF;
+        $this->getClient()->request('POST',
+            '/api/programmers',
+            $parameters = [],
+            $files = [],
+            $server = [],
+            $invalidBody,
+            $changeHistory = true);
+
+        $response = $this->getClient()->getResponse();
+
+        $this->assertEquals(400, $response->getStatusCode());
+
+        $this->asserter()->assertResponsePropertyEquals($response, 'type', 'invalid_body_format');
     }
 }

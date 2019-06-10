@@ -8,9 +8,11 @@ namespace AppBundle\Api;
 class ApiProblem
 {
     const TYPE_VALIDATION_ERROR = 'validation_error';
+    const TYPE_INVALID_REQUEST_BODY_FORMAT = 'invalid_body_format';
 
     private static $titles = [
-        self::TYPE_VALIDATION_ERROR => 'There was a validation error'
+        self::TYPE_VALIDATION_ERROR            => 'There was a validation error',
+        self::TYPE_INVALID_REQUEST_BODY_FORMAT => 'Invalid JSON format sent',
     ];
 
     private $statusCode;
@@ -40,8 +42,8 @@ class ApiProblem
             $this->extraData,
             array(
                 'status' => $this->statusCode,
-                'type' => $this->type,
-                'title' => $this->title,
+                'type'   => $this->type,
+                'title'  => $this->title,
             )
         );
     }
@@ -56,10 +58,8 @@ class ApiProblem
         return $this->statusCode;
     }
 
-//    public function getHeaders()
-//    {
-//        return [
-//            'Content-Type' => 'application/problem+json'
-//        ];
-//    }
+    public function getTitle()
+    {
+        return $this->title;
+    }
 }

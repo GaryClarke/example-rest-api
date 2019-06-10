@@ -6,11 +6,13 @@ use AppBundle\Api\ApiProblem;
 use AppBundle\Entity\Programmer;
 use AppBundle\Controller\BaseController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
+use Tests\AppBundle\Controller\Api\ApiProblemException;
 
 class ProgrammerController extends BaseController
 {
@@ -23,6 +25,13 @@ class ProgrammerController extends BaseController
     {
         $data = $request->getContent();
 
+        if (!$this->isJson($data)) {
+
+            $apiProblem = new ApiProblem(400, ApiProblem::TYPE_INVALID_REQUEST_BODY_FORMAT);
+
+            throw new ApiProblemException($apiProblem);
+        }
+
         $programmer = $serializer->deserialize($data, Programmer::class, 'json');
 
         $programmer->setUser($this->findUserByUsername('weaverryan'));
@@ -33,7 +42,7 @@ class ProgrammerController extends BaseController
 
         if ($validation->count() > 0) {
 
-            return $this->createValidationErrorResponse($validation);
+            $this->throwApiProblemValidationException($validation);
         }
 
         $em = $this->getDoctrine()->getManager();
@@ -48,6 +57,12 @@ class ProgrammerController extends BaseController
         $response = $this->createApiResponse($programmer, 201, true, ['Location' => $programmerUrl]);
 
         return $response;
+    }
+
+
+    public function isJson($string) {
+        json_decode($string);
+        return (json_last_error() === JSON_ERROR_NONE);
     }
 
 
@@ -188,7 +203,7 @@ class ProgrammerController extends BaseController
 
         if ($validation->count() > 0) {
 
-            return $this->createValidationErrorResponse($validation);
+            $this->throwApiProblemValidationException($validation);
         }
 
         $em = $this->getDoctrine()->getManager();
@@ -217,13 +232,23 @@ class ProgrammerController extends BaseController
     }
 
 
-    private function createValidationErrorResponse($validation)
+    private function throwApiProblemValidationException($validation)
     {
         $errors = $this->getErrors($validation);
 
         $apiProblem = new ApiProblem(400, ApiProblem::TYPE_VALIDATION_ERROR);
 
         $apiProblem->set('errors', $errors);
+
+        throw new ApiProblemException($apiProblem);
+    }
+
+
+    private function createInvalidRequestBodyErrorResponse()
+    {
+        $apiProblem = new ApiProblem(400, ApiProblem::TYPE_INVALID_REQUEST_BODY_FORMAT);
+
+//        throw new HttpException(400, 'Invalid Json body');
 
         return new JsonResponse($apiProblem->toArray(), $apiProblem->getStatusCode(), ['Content-Type' => 'application/problem+json']);
     }
