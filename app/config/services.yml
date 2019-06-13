@@ -34,8 +34,11 @@ services:
     #     arguments:
     #         $someArgument: 'some_value'
 
-    api_problem_subscriber:
-        class: AppBundle\EventListener\ApiExceptionSubscriber
-        arguments: []
-        tags:
-            - { name: kernel.event_subscriber }
+    AppBundle\EventListener\ApiExceptionSubscriber:
+        arguments:
+            $debug: '%kernel.debug%'
+#    api_problem_subscriber:
+#        class: AppBundle\EventListener\ApiExceptionSubscriber
+#        arguments: [%kernel.debug%]
+#        tags:
+#            - { name: kernel.event_subscriber }

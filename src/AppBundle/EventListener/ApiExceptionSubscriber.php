@@ -3,6 +3,7 @@
 namespace AppBundle\EventListener;
 
 use AppBundle\Api\ApiProblem;
+use Symfony\Component\Debug\Debug;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Tests\AppBundle\Controller\Api\ApiProblemException;
@@ -12,10 +13,26 @@ use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 
 class ApiExceptionSubscriber implements EventSubscriberInterface
 {
+    private $debug;
+
+    public function __construct($debug)
+    {
+        $this->debug = $debug;
+    }
 
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
+        if (strpos($event->getRequest()->getPathInfo(), '/api') !== 0) {
+            return;
+        }
+
         $e = $event->getException();
+
+        $statusCode = $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500;
+
+        if ($statusCode == 500 && $this->debug) {
+            return;
+        }
 
         if ($e instanceof ApiProblemException) {
 
@@ -23,12 +40,21 @@ class ApiExceptionSubscriber implements EventSubscriberInterface
 
         } else {
 
-            $statusCode = $e instanceof HttpExceptionInterface ? $e->getStatusCode() : 500;
-
             $apiProblem = new ApiProblem($statusCode);
         }
 
-        $response = new JsonResponse($apiProblem->toArray(), $apiProblem->getStatusCode(), ['Content-Type' => 'application/problem+json']);
+        if ($e instanceof HttpExceptionInterface) {
+            $apiProblem->set('detail', $e->getMessage());
+        }
+
+        $data = $apiProblem->toArray();
+
+        if ($data['type'] != 'about:blank') {
+
+            $data['type'] = 'http://localhost:8000/docs/errors#' . $data['type'];
+        }
+
+        $response = new JsonResponse($data, $apiProblem->getStatusCode(), ['Content-Type' => 'application/problem+json']);
 
         $event->setResponse($response);
     }
