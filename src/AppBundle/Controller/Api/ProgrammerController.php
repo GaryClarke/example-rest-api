@@ -6,7 +6,6 @@ use AppBundle\Api\ApiProblem;
 use AppBundle\Entity\Programmer;
 use AppBundle\Controller\BaseController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PropertyAccess\PropertyAccess;

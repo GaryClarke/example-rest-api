@@ -2,6 +2,8 @@
 
 namespace AppBundle\Api;
 
+use Symfony\Component\HttpFoundation\Response;
+
 /**
  * A wrapper for holding data to be used for a application/problem+json response
  */
@@ -22,18 +24,31 @@ class ApiProblem
     private $title;
 
     private $extraData = array();
+    
 
-    public function __construct($statusCode, $type)
-    {
+    public function __construct($statusCode, $type = null)
+    {        
         $this->statusCode = $statusCode;
-        $this->type = $type;
 
-        if (!isset(self::$titles[$type])) {
+        if ($type === null) { // If no type, set to about:blank
 
-            throw new \InvalidArgumentException('No title for type ' . $type);
+            $type = 'about:blank';
+
+            $title = isset(Response::$statusTexts[$statusCode]) ? Response::$statusTexts[$statusCode] : 'Unknown status code :(';
+
+        } else {
+            
+
+            if (!isset(self::$titles[$type])) {
+
+                throw new \InvalidArgumentException('No title for type ' . $type);
+            }
+
+            $title = self::$titles[$type];
         }
 
-        $this->title = self::$titles[$type];
+        $this->title = $title;
+        $this->type = $type;
     }
 
     public function toArray()

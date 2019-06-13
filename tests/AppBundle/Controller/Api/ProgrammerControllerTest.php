@@ -186,4 +186,20 @@ EOF;
 
         $this->asserter()->assertResponsePropertyEquals($response, 'type', 'invalid_body_format');
     }
+
+
+    public function test404exception()
+    {
+        $this->jsonRequest('GET', '/api/programmers/fake');
+
+        $response = $this->getClient()->getResponse();
+
+        $this->assertEquals(404, $response->getStatusCode());
+
+        $this->assertEquals('application/problem+json', $response->headers->get('content-type'));
+
+        $this->asserter()->assertResponsePropertyEquals($response, 'type', 'about:blank');
+
+        $this->asserter()->assertResponsePropertyEquals($response, 'title', 'Not Found');
+    }
 }
