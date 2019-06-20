@@ -1,8 +1,7 @@
 <?php
 
-namespace Tests\AppBundle\Controller\Api;
+namespace AppBundle\Api;
 
-use AppBundle\Api\ApiProblem;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ApiProblemException extends HttpException

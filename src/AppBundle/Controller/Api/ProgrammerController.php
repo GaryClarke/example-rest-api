@@ -4,17 +4,21 @@ namespace AppBundle\Controller\Api;
 
 use AppBundle\Api\ApiProblem;
 use AppBundle\Entity\Programmer;
+use AppBundle\Api\ApiProblemException;
 use AppBundle\Controller\BaseController;
+use AppBundle\Pagination\PaginatedCollection;
+use Pagerfanta\Adapter\DoctrineORMAdapter;
+use Pagerfanta\Pagerfanta;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\SerializerInterface;
-use Tests\AppBundle\Controller\Api\ApiProblemException;
 use Symfony\Component\Validator\ConstraintViolationList;
 
 class ProgrammerController extends BaseController
 {
+
     private static $excludedFromUpdate = ['id', 'nickname'];
 
     /**
@@ -59,8 +63,10 @@ class ProgrammerController extends BaseController
     }
 
 
-    public function isJson($string) {
+    public function isJson($string)
+    {
         json_decode($string);
+
         return (json_last_error() === JSON_ERROR_NONE);
     }
 
@@ -103,11 +109,29 @@ class ProgrammerController extends BaseController
     /**
      * @Route("/api/programmers", methods={"GET"})
      */
-    public function listAction()
+    public function listAction(Request $request)
     {
-        $programmers = $this->getDoctrine()->getRepository('AppBundle:Programmer')->findAll();
+        $page = $request->query->get('page', 1);
 
-        return $this->createApiResponse(['programmers' => $programmers]);
+        $query = $this->getDoctrine()->getRepository('AppBundle:Programmer')->findAllQueryBuilder();
+
+        $adapter = new DoctrineORMAdapter($query);
+
+        $pagerfanta = new Pagerfanta($adapter);
+
+        $pagerfanta->setMaxPerPage(10);
+
+        $pagerfanta->setCurrentPage($page);
+
+        $programmers = [];
+
+        foreach ($pagerfanta->getCurrentPageResults() as $programmer) {
+            $programmers[] = $programmer;
+        }
+
+        $paginatedCollection = new PaginatedCollection($programmers, $pagerfanta->getNbResults());
+
+        return $this->createApiResponse($paginatedCollection);
     }
 
 

@@ -69,9 +69,9 @@ class ProgrammerControllerTest extends ApiTestCase
         $response = $this->getClient()->getResponse();
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->asserter()->assertResponsePropertyIsArray($response, 'programmers');
-        $this->asserter()->assertResponsePropertyCount($response, 'programmers', 2);
-        $this->asserter()->assertResponsePropertyEquals($response, 'programmers[1].nickname', 'CowboyCoder');
+        $this->asserter()->assertResponsePropertyIsArray($response, 'items');
+        $this->asserter()->assertResponsePropertyCount($response, 'items', 2);
+        $this->asserter()->assertResponsePropertyEquals($response, 'items[1].nickname', 'CowboyCoder');
     }
 
 
@@ -204,4 +204,44 @@ EOF;
 
         $this->asserter()->assertResponsePropertyEquals($response, 'detail', 'No programmer found with nickname "fake"');
     }
+
+
+    public function testGETProgrammersCollectionPaginated()
+    {
+        for ($i = 0; $i < 25; $i++) {
+
+            $this->createProgrammer([
+                'nickname'     => 'Programmer' . $i,
+                'avatarNumber' => 3,
+            ]);
+        }
+
+        $this->jsonRequest('GET', '/api/programmers');
+
+        $response = $this->getClient()->getResponse();
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->asserter()->assertResponsePropertyEquals($response, 'items[5].nickname', 'Programmer5');
+        $this->asserter()->assertResponsePropertyEquals($response, 'count', 10);
+        $this->asserter()->assertResponsePropertyEquals($response, 'total', 25);
+        $this->asserter()->assertResponsePropertyExists($response, '_links.next');
+
+        $nextUrl = $this->asserter()->readResponseProperty($response, '_links.next');
+
+        $this->jsonRequest('GET', $nextUrl);
+        $response = $this->getClient()->getResponse();
+
+        $this->asserter()->assertResponsePropertyEquals($response, 'items[5].nickname', 'Programmer15');
+        $this->asserter()->assertResponsePropertyEquals($response, 'count', 10);
+
+        $lastUrl = $this->asserter()->readResponseProperty($response, '_links.last');
+
+        $this->jsonRequest('GET', $lastUrl);
+        $response = $this->getClient()->getResponse();
+
+        $this->asserter()->assertResponsePropertyDoesNotExist($response, 'items[5].nickname');
+        $this->asserter()->assertResponsePropertyEquals($response, 'items[4].nickname', 'Programmer24');
+        $this->asserter()->assertResponsePropertyEquals($response, 'count', 5);
+    }
+
 }

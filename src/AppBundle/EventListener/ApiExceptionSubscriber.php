@@ -3,10 +3,9 @@
 namespace AppBundle\EventListener;
 
 use AppBundle\Api\ApiProblem;
-use Symfony\Component\Debug\Debug;
+use AppBundle\Api\ApiProblemException;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Tests\AppBundle\Controller\Api\ApiProblemException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
