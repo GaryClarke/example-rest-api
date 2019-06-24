@@ -224,24 +224,25 @@ EOF;
         $this->asserter()->assertResponsePropertyEquals($response, 'items[5].nickname', 'Programmer5');
         $this->asserter()->assertResponsePropertyEquals($response, 'count', 10);
         $this->asserter()->assertResponsePropertyEquals($response, 'total', 25);
-        $this->asserter()->assertResponsePropertyExists($response, '_links.next');
 
-        $nextUrl = $this->asserter()->readResponseProperty($response, '_links.next');
-
+        $nextUrl = $this->asserter()->readResponseProperty($response, 'links.next');
+        
         $this->jsonRequest('GET', $nextUrl);
         $response = $this->getClient()->getResponse();
+        
+        dump(json_decode($response->getContent(), true)); die();
 
-        $this->asserter()->assertResponsePropertyEquals($response, 'items[5].nickname', 'Programmer15');
-        $this->asserter()->assertResponsePropertyEquals($response, 'count', 10);
-
-        $lastUrl = $this->asserter()->readResponseProperty($response, '_links.last');
-
-        $this->jsonRequest('GET', $lastUrl);
-        $response = $this->getClient()->getResponse();
-
-        $this->asserter()->assertResponsePropertyDoesNotExist($response, 'items[5].nickname');
-        $this->asserter()->assertResponsePropertyEquals($response, 'items[4].nickname', 'Programmer24');
-        $this->asserter()->assertResponsePropertyEquals($response, 'count', 5);
+//        $this->asserter()->assertResponsePropertyEquals($response, 'items[5].nickname', 'Programmer15');
+//        $this->asserter()->assertResponsePropertyEquals($response, 'count', 10);
+//
+//        $lastUrl = $this->asserter()->readResponseProperty($response, 'links.last');
+//
+//        $this->jsonRequest('GET', $lastUrl);
+//        $response = $this->getClient()->getResponse();
+//
+//        $this->asserter()->assertResponsePropertyDoesNotExist($response, 'items[5].nickname');
+//        $this->asserter()->assertResponsePropertyEquals($response, 'items[4].nickname', 'Programmer24');
+//        $this->asserter()->assertResponsePropertyEquals($response, 'count', 5);
     }
 
 }
